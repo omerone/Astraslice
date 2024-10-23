@@ -1,0 +1,2 @@
+google api  = AIzaSyD00USwsOAcb0hQqOm2kWxEcBBZxg7S5Zs
+ngrok = 2l6r6vCbENywTecJF2Hwoe8Wqxh_6DC3QZbyZatFAMwowGx5i

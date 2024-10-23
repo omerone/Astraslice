@@ -1,0 +1,634 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ASTRASLICE - Futuristic Image Segmentation</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap'); 
+
+        body {
+            font-family: 'Roboto', sans-serif;
+            background: url('/Users/omermaoz/Downloads/SAM2/project_bg_image.jpg') no-repeat center center fixed;
+            background-size: cover;
+            color: #333333;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            padding-top: 50px;
+            justify-content: flex-start;
+            position: relative;
+        }
+
+        body::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(255, 255, 255, 0.1); /* White overlay with 80% opacity */
+            z-index: -1; /* Place it behind the content */
+        }
+
+        h1, h2 {
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin: 10px 0;
+            text-align: center;
+        }
+
+        h1 {
+            font-size: 64px;
+            color: #c23333; /* Dark blue color */
+            margin-bottom: 0;
+        }
+
+        h2 {
+            font-size: 55px;
+            color: #0056A3; /* Red color */
+            margin-top: 0;
+        }
+
+        .button {
+            font-family: 'Roboto', sans-serif;
+            background: #0056A3; /* Dark blue color */
+            border: none;
+            color: #fff;
+            padding: 15px 35px;
+            margin: 10px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 18px;
+            transition: background 0.3s ease, transform 0.2s ease;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+        }
+
+        .button:hover {
+            background: #003D73; /* Slightly darker blue on hover */
+            transform: translateY(-3px);
+        }
+
+        .button1 {
+            font-family: 'Roboto', sans-serif;
+            background: #FF4C4C; /* Red color */
+            border: none;
+            color: #fff;
+            padding: 15px 35px;
+            margin: 10px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 18px;
+            transition: background 0.3s ease, transform 0.2s ease;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+        }
+
+        .button1:hover {
+            background: #CC3B3B; /* Darker red on hover */
+            transform: translateY(-3px);
+        }
+
+        .input-container {
+            border: 3px solid #0056A3;
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            margin-bottom: 5px;
+            padding: 10px;
+            background-color: #cc3b3bd8;
+        }
+
+        input[type="file"] {
+            margin-right: 15px;
+            font-size: 16px;
+            font-family: 'Roboto', sans-serif;
+        }
+
+        #pointsInput,
+        #segmentationMode {
+            font-family: 'Roboto', sans-serif;
+            font-size: 16px;
+            padding: 8px;
+            border-radius: 8px;
+            border: 3px solid #0056A3;
+            margin-left: 15px;
+        }
+
+        .label-container {
+            display: flex;
+            align-items: center;
+            margin-left: 15px;
+            font-family: 'Roboto', sans-serif;
+        }
+
+        .label-container input {
+            margin-left: 10px;
+            margin-right: 5px;
+        }
+
+        .label-container label {
+            font-weight: 600;
+        }
+
+        #displayImageWrapper {
+            position: relative;
+            display: inline-block;
+            margin-top: 15px;
+        }
+
+        #displayImage {
+            max-width: 100%;
+            height: auto;
+            border-radius: 20px;
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
+            cursor: crosshair;
+        }
+
+        #timeDisplay {
+            font-size: 18px;
+            margin-top: 15px;
+            margin-bottom: 10px;
+            color: #0056A3;
+            font-weight: 600;
+            display: none; /* Hide the Elapsed Time text by default */
+        }
+        
+
+        #map {
+            width: 100%;
+            max-width: 650px;
+            height: 650px;
+            display: none;
+            border: 3px solid #0056A3;
+            border-radius: 15px;
+            margin-bottom: 5px;
+        }
+
+        #searchInput {
+            padding: 10px;
+            border: 3px solid #0056A3;
+            border-radius: 8px;
+            font-size: 16px;
+            width: 200px;
+            margin-right: 10px;
+            font-family: 'Roboto', sans-serif;
+        }
+
+        #searchBar {
+            display: none;
+            align-items: center;
+            margin-bottom: 5px;
+        }
+
+        #segmentedImagesContainer {
+            display: flex;
+            overflow-x: auto;
+            width: 100%;
+            justify-content: center;
+            margin-top: 20px;
+        }
+
+        .segmentedImage {
+            max-width: 100%;
+            height: auto;
+            border-radius: 15px;
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
+            margin: 10px;
+        }
+
+        .point {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            user-select: none;
+            pointer-events: none;
+            background-color: #FF4C4C;
+            transition: background-color 0.3s ease;
+        }
+
+        .point:hover {
+            background-color: #CC3B3B;
+        }
+    </style>
+</head>
+<body>
+    <h1>ASTRASLICE</h1>
+    <h2>Futuristic Image Segmentation</h2>
+    
+    <div class="input-container">
+        <input type="file" id="imageInput" accept="image/*" />
+        <button id="uploadButton" class="button" onclick="toggleImage()">Upload Image</button>
+        <button id="mapButton" class="button" onclick="showMap()">Show Map</button>
+        <button id="hideMapButton" class="button" onclick="hideMap()">Hide Map</button>
+        <input
+            type="number"
+            id="pointsInput"
+            class="points-input"
+            placeholder="2 Points Default"
+            min="2"
+        />
+        <div class="label-container" style="flex-direction: column;">
+            <input type="radio" id="labelAdd" name="pointLabel" value="1" checked />
+            <label for="labelAdd">+</label>
+            <input type="radio" id="labelRemove" name="pointLabel" value="0" />
+            <label for="labelRemove">-</label>
+        </div>
+        <select id="segmentationMode" class="points-input">
+            <option value="single">Single Object</option>
+            <option value="multiple">Multiple Objects</option>
+        </select>
+    </div>
+
+    <div id="displayImageWrapper">
+        <img id="displayImage" src="" alt="" style="display: none;" />
+    </div>
+
+    <div id="clear-button" style="display: none; color: #ff3d00;">
+        <button class="button1" onclick="clearOutput()">Clear Output</button>
+        <button class="button1" onclick="clearPoints()">Clear Points</button>
+    </div>    
+
+    <button id="segmentButton" class="button" style="display: none;" onclick="segmentImage()">Segment Image</button>
+
+    <div id="segmentedImagesContainer"></div>
+
+
+    <div id="searchBar">
+        <input id="searchInput" type="text" placeholder="Search location..." />
+        <button class="button" onclick="searchLocation()">Search</button>
+    </div>
+
+    <div id="map"></div>
+
+    <button id="captureButton" class="button" style="display: none;" onclick="captureMap()">Capture Map</button>
+    <div id="timeDisplay">Elapsed Time: 0.00s</div>
+    <!-- Google Maps API script with your API key -->
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyD00USwsOAcb0hQqOm2kWxEcBBZxg7S5Zs"></script>
+    <!-- html2canvas library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
+    <script>
+        const urli = "https://f49f-34-19-0-185.ngrok-free.app";
+        const path = "/segment";
+        const url = `${urli}${path}`;
+
+        const points = [];
+        let originalImageWidth, originalImageHeight;
+        let numPoints = 2;
+        let mapVisible = false;
+        let map;
+        let imageUploaded = false;
+
+        function toggleImage() {
+            if (imageUploaded) {
+                removeImage();
+            } else {
+                uploadImage();
+            }
+        }
+
+        function uploadImage() {
+            const input = document.getElementById("imageInput");
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                    const displayImage = document.getElementById("displayImage");
+                    displayImage.src = e.target.result;
+                    displayImage.style.display = "block";  // Show the image after it has been loaded
+
+                    const img = new Image();
+                    img.onload = function () {
+                        originalImageWidth = img.width;
+                        originalImageHeight = img.height;
+
+                        // Adjust size if needed
+                        displayImage.style.maxWidth = "1000px";
+                        displayImage.style.maxHeight = "800px";
+                    };
+                    img.src = e.target.result;
+
+                    document.getElementById("segmentButton").style.display = "block";
+                    document.getElementById("clear-button").style.display = "flex";
+                    document.getElementById("timeDisplay").style.display = "block";
+                    clearPoints();
+
+                    displayImage.onclick = function (event) {
+                        const inputPoints = document.getElementById("pointsInput").value;
+                        numPoints = inputPoints ? parseInt(inputPoints) : 2;
+
+                        if (points.length < numPoints) {
+                            const rect = displayImage.getBoundingClientRect();
+                            const scaleX = originalImageWidth / displayImage.clientWidth;
+                            const scaleY = originalImageHeight / displayImage.clientHeight;
+                            const x = (event.clientX - rect.left) * scaleX;
+                            const y = (event.clientY - rect.top) * scaleY;
+                            const label = document.querySelector(
+                                'input[name="pointLabel"]:checked'
+                            ).value;
+                            points.push({
+                                x: Math.round(x),
+                                y: Math.round(y),
+                                label: parseInt(label),
+                            });
+
+                            const pointDiv = document.createElement("div");
+                            pointDiv.className = "point";
+                            pointDiv.style.left = `${
+                                (event.clientX - rect.left) *
+                                (displayImage.clientWidth / displayImage.clientWidth)
+                            }px`;
+                            pointDiv.style.top = `${
+                                (event.clientY - rect.top) *
+                                (displayImage.clientHeight / displayImage.clientHeight)
+                            }px`;
+                            pointDiv.title = label;
+                            pointDiv.style.backgroundColor =
+                                label === "1" ? "#00ff00" : "red";
+                            displayImage.parentNode.appendChild(pointDiv);
+                        }
+                    };
+
+                    // Update button text and functionality
+                    const uploadButton = document.getElementById("uploadButton");
+                    uploadButton.textContent = "Remove Image";
+                    imageUploaded = true;
+
+                    // Hide map if visible
+                    if (mapVisible) {
+                        hideMap();
+                    }
+                };
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+
+        function removeImage() {
+            const displayImage = document.getElementById("displayImage");
+            displayImage.src = "";
+            document.getElementById("segmentButton").style.display = "none";
+            document.getElementById("uploadButton").textContent = "Upload Image";
+            imageUploaded = false;
+            clearPoints();
+            clearOutput();
+            // Hide the clear buttons
+            document.getElementById("clear-button").style.display = "none";
+            document.getElementById('timeDisplay').innerText = `The Previous Segmentation Elapsed Time: ${elapsedTime.toFixed(2)}s`;
+            // Hide map if visible
+            if (mapVisible) {
+                hideMap();
+            }
+        }
+
+        function clearPoints() {
+            points.length = 0;
+            const pointElements = document.querySelectorAll(".point");
+            pointElements.forEach((element) => element.remove());
+            
+        }
+
+        function clearOutput() {
+            const container = document.getElementById("segmentedImagesContainer");
+            container.innerHTML = "";
+            
+        }
+
+        window.addEventListener('load', () => {
+            // Clear any residual states from previous sessions
+            localStorage.clear();
+            sessionStorage.clear();
+
+            // Ensure the "Show Map" button is visible and the "Hide Map" button is hidden on page load
+            document.getElementById("mapButton").style.display = "inline-block";
+            document.getElementById("hideMapButton").style.display = "none";
+        });
+
+        function showMap() {
+            const mapContainer = document.getElementById("map");
+            const mapButton = document.getElementById("mapButton");
+            const hideMapButton = document.getElementById("hideMapButton");
+            const captureButton = document.getElementById("captureButton");
+            const searchBar = document.getElementById("searchBar");
+            document.getElementById("timeDisplay").style.display = "none";
+            
+            // Clear the uploaded image and points
+            if (imageUploaded) {
+                document.getElementById("displayImage").src = ""; // Clear the uploaded image
+                document.getElementById("segmentButton").style.display = "none";
+                document.getElementById("uploadButton").textContent = "Upload Image";
+                document.getElementById("clear-button").style.display = "none";
+                imageUploaded = false; // Update imageUploaded status
+            }
+
+            clearPoints();
+            clearOutput();
+
+            // Hide map if visible
+            if (mapVisible) {
+                hideMap();
+            }
+
+            mapContainer.style.display = "block";
+            mapButton.style.display = "none"; // Hide the "Show Map" button
+            hideMapButton.style.display = "inline-block"; // Show the "Hide Map" button
+            captureButton.style.display = "inline-block";
+            searchBar.style.display = "flex"; // Show the search bar when the map is shown
+            initializeMap();
+
+            mapVisible = true;
+        }
+
+        function hideMap() {
+            const mapContainer = document.getElementById("map");
+            const mapButton = document.getElementById("mapButton");
+            const hideMapButton = document.getElementById("hideMapButton");
+            const captureButton = document.getElementById("captureButton");
+            const searchBar = document.getElementById("searchBar");
+
+            mapContainer.style.display = "none";
+            searchBar.style.display = "none"; // Hide the search bar when the map is hidden
+            mapContainer.innerHTML = ""; // Remove map content
+            mapButton.style.display = "inline-block"; // Show the "Show Map" button
+            hideMapButton.style.display = "none"; // Hide the "Hide Map" button
+            captureButton.style.display = "none";
+
+            mapVisible = false;
+        }
+
+        function initializeMap() {
+            map = new google.maps.Map(document.getElementById("map"), {
+                center: { lat: 40.7128, lng: -74.0060 }, // Default to New York
+                zoom: 10,
+                mapTypeId: google.maps.MapTypeId.SATELLITE,
+            });
+        }
+
+        function captureMap() {
+            document.getElementById("hideMapButton").style.display = "none";
+            document.getElementById("segmentButton").style.display = "none";
+            const searchBar = document.getElementById("searchBar");
+            
+            html2canvas(document.getElementById("map"), {
+                useCORS: true,
+                scale: window.devicePixelRatio,
+                onclone: (clonedDoc) => {
+                    const clonedElement = clonedDoc.getElementById('map');
+                    clonedElement.style.position = 'relative';
+                    clonedElement.style.overflow = 'hidden';
+                }
+            }).then((canvas) => {
+                const resizedCanvas = document.createElement('canvas');
+                const ctx = resizedCanvas.getContext('2d');
+
+                const maxSize = 1024; // Maximum size for the resized image
+                const maxSizeInBytes = 1024 * 1024; // 1 MB in bytes
+
+                let quality = 1.0; // Start with the highest quality
+                let scale = 1.0; // Start with original scale
+
+                function resizeAndCompress() {
+                    resizedCanvas.width = canvas.width * scale;
+                    resizedCanvas.height = canvas.height * scale;
+                    ctx.drawImage(canvas, 0, 0, resizedCanvas.width, resizedCanvas.height);
+                    const imgData = resizedCanvas.toDataURL('image/jpeg', quality);
+
+                    // Check the size of the image
+                    const byteString = atob(imgData.split(',')[1]);
+                    const arrayBuffer = new ArrayBuffer(byteString.length);
+                    const uintArray = new Uint8Array(arrayBuffer);
+                    for (let i = 0; i < byteString.length; i++) {
+                        uintArray[i] = byteString.charCodeAt(i);
+                    }
+                    const blob = new Blob([uintArray], { type: 'image/jpeg' });
+
+                    if (blob.size > maxSizeInBytes) {
+                        // If too big, reduce the quality
+                        if (quality > 0.1) {
+                            quality -= 0.1; // Decrease quality
+                            resizeAndCompress(); // Retry with reduced quality
+                        } else {
+                            // If quality is at minimum, scale down the image
+                            if (scale > 0.5) {
+                                scale -= 0.1;
+                                resizeAndCompress(); // Retry with reduced scale
+                            } else {
+                                // Download the image once the size is acceptable
+                                downloadImage(imgData);
+                            }
+                        }
+                    } else {
+                        downloadImage(imgData); // Download if within size limits
+                    }
+                }
+
+                function downloadImage(imgData) {
+                    const link = document.createElement('a');
+                    link.href = imgData;
+                    link.download = 'map-capture.jpg';
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+
+                    // Reset the UI
+                    document.getElementById("map").style.display = "none";
+                    document.getElementById("mapButton").style.display = "inline-block";
+                    document.getElementById("captureButton").style.display = "none";
+                    searchBar.style.display = "none"; // Hide the search bar after capture
+                }
+
+                resizeAndCompress(); // Start the resize and compress process
+            }).catch((error) => {
+                console.error('Error capturing map:', error);
+            });
+        }
+
+        function searchLocation() {
+            const searchInput = document.getElementById("searchInput").value;
+            const geocoder = new google.maps.Geocoder();
+
+            geocoder.geocode({ address: searchInput }, function(results, status) {
+                if (status === google.maps.GeocoderStatus.OK) {
+                    map.setCenter(results[0].geometry.location);
+                    map.setZoom(6); // Set zoom level to 15 for a closer view
+                    new google.maps.Marker({
+                        map: map,
+                        position: results[0].geometry.location
+                    });
+                } else {
+                    alert("Geocode was not successful for the following reason: " + status);
+                }
+            });
+        }
+
+        async function segmentImage() {
+            const segmentationMode = document.getElementById("segmentationMode").value;
+            
+            if (segmentationMode === "multiple" && points.length < 2) {
+                alert("Please add at least 2 points before segmenting multiple objects.");
+                return;
+            } else if (segmentationMode === "single" && points.length < 1) {
+                alert("Please add at least 1 point before segmenting the object.");
+                return;
+            }
+
+            const displayImage = document.getElementById("displayImage");
+            const imageData = displayImage.src;
+
+            const startTime = performance.now();
+
+            try {
+                const response = await fetch(url, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({ imageData: imageData, points: points, mode: segmentationMode }),
+                });
+
+                const endTime = performance.now();
+                const elapsedTime = (endTime - startTime) / 1000;
+                document.getElementById('timeDisplay').innerText = `Elapsed Time: ${elapsedTime.toFixed(2)}s`;
+
+                const result = await response.json();
+                if (result.status === "success") {
+                    const container = document.getElementById("segmentedImagesContainer");
+                    container.innerHTML = "";
+
+                    if (result.segmentedImages) {
+                        result.segmentedImages.forEach(imgData => {
+                            const imgElement = document.createElement("img");
+                            imgElement.src = `data:image/jpeg;base64,${imgData}`;
+                            imgElement.className = "segmentedImage";
+                            imgElement.alt = "Segmented Image";
+                            container.appendChild(imgElement);
+                        });
+                    } else if (result.segmentedImage) {
+                        const imgElement = document.createElement("img");
+                        imgElement.src = `data:image/jpeg;base64,${result.segmentedImage}`;
+                        imgElement.className = "segmentedImage";
+                        imgElement.alt = "Segmented Image";
+                        container.appendChild(imgElement);
+                    } else {
+                        alert("No segmented image returned.");
+                    }
+                } else {
+                    alert("Segmentation failed: " + result.error);
+                }
+            } catch (error) {
+                console.error("Error during segmentation:", error);
+                alert("Error during segmentation: " + error.message);
+            }
+        }
+
+        // Clear storage and residual data on page load
+        window.addEventListener('load', () => {
+            localStorage.clear();
+            sessionStorage.clear();
+        });
+    </script>
+</body>
+</html>
